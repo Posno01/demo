@@ -1,0 +1,7 @@
+{
+  "name": "Æsthetic Journal",
+  "description": "A minimal, editorial photo journal with a masonry layout, focused on calm visual storytelling.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
