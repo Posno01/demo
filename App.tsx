@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import PostCard from './components/PostCard';
 import PostDetail from './components/PostDetail';
 import CreatePostModal from './components/CreatePostModal';
 import { Post, Category } from './types';
 
-// Initial placeholder data
+// Initial placeholder data for aesthetic feel
 const INITIAL_POSTS: Post[] = [
   {
     id: '1',
@@ -48,62 +49,61 @@ const INITIAL_POSTS: Post[] = [
     caption: 'Shadows of leaves dancing across a blank wall, a monochromatic performance.',
     category: 'Atmosphere',
     createdAt: Date.now() - 60000000,
-  },
+  }
 ];
 
-export default function App() {
-  const [posts, setPosts] = useState<Post[]>(INITIAL_POSTS);
+const App: React.FC = () => {
+  const [posts, setPosts] = useState<Post[]>([]);
   const [activeCategory, setActiveCategory] = useState<Category>('All');
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  // Load from localStorage once
   useEffect(() => {
     const saved = localStorage.getItem('journal_posts');
     if (saved) {
       try {
         setPosts(JSON.parse(saved));
-      } catch {
+      } catch (e) {
         setPosts(INITIAL_POSTS);
       }
+    } else {
+      setPosts(INITIAL_POSTS);
     }
   }, []);
 
-  // Save to localStorage on change
   useEffect(() => {
-    localStorage.setItem('journal_posts', JSON.stringify(posts));
+    if (posts.length > 0) {
+      localStorage.setItem('journal_posts', JSON.stringify(posts));
+    }
   }, [posts]);
 
-  const filtered =
-    activeCategory === 'All'
-      ? posts
-      : posts.filter((p) => p.category === activeCategory);
+  const filteredPosts = activeCategory === 'All' 
+    ? posts 
+    : posts.filter(p => p.category === activeCategory);
 
-  const sortedPosts = [...filtered].sort(
-    (a, b) => b.createdAt - a.createdAt
-  );
+  const sortedPosts = [...filteredPosts].sort((a, b) => b.createdAt - a.createdAt);
 
   const handleSavePost = (newPost: Post) => {
-    setPosts((prev) => [newPost, ...prev]);
+    setPosts([newPost, ...posts]);
     setIsCreateModalOpen(false);
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
-      <Header
-        activeCategory={activeCategory}
+    <div className="min-h-screen flex flex-col">
+      <Header 
+        activeCategory={activeCategory} 
         setActiveCategory={setActiveCategory}
         onOpenCreate={() => setIsCreateModalOpen(true)}
       />
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-12 md:py-20">
         {sortedPosts.length > 0 ? (
-          <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-6 space-y-6">
+          <div className="masonry-grid columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-6">
             {sortedPosts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                onClick={() => setSelectedPost(post)}
+              <PostCard 
+                key={post.id} 
+                post={post} 
+                onClick={setSelectedPost} 
               />
             ))}
           </div>
@@ -118,29 +118,31 @@ export default function App() {
       <footer className="py-12 border-t border-stone-200">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
           <p className="text-[10px] uppercase tracking-widest text-stone-400">
-            © {new Date().getFullYear()} Æsthetic Journal
+            &copy; {new Date().getFullYear()} Æsthetic Journal &mdash; Minimal Visuals
           </p>
           <div className="flex gap-8 text-[10px] uppercase tracking-widest text-stone-400">
-            <span>Archive</span>
-            <span>About</span>
-            <span>Contact</span>
+            <a href="#" className="hover:text-stone-900 transition-colors">Archive</a>
+            <a href="#" className="hover:text-stone-900 transition-colors">About</a>
+            <a href="#" className="hover:text-stone-900 transition-colors">Contact</a>
           </div>
         </div>
       </footer>
 
       {selectedPost && (
-        <PostDetail
-          post={selectedPost}
-          onClose={() => setSelectedPost(null)}
+        <PostDetail 
+          post={selectedPost} 
+          onClose={() => setSelectedPost(null)} 
         />
       )}
 
       {isCreateModalOpen && (
-        <CreatePostModal
+        <CreatePostModal 
           onClose={() => setIsCreateModalOpen(false)}
           onSave={handleSavePost}
         />
       )}
     </div>
   );
-}
+};
+
+export default App;
