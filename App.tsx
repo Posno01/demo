@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import PostCard from './components/PostCard';
@@ -6,7 +5,14 @@ import PostDetail from './components/PostDetail';
 import CreatePostModal from './components/CreatePostModal';
 import { Post, Category } from './types';
 
-// Initial placeholder data for aesthetic feel
+/** ===============================
+ * DEMO MODE 설정
+ * =============================== */
+const IS_DEMO = true;
+
+/** ===============================
+ * 초기 체험용 데이터 (90일 전체 체험 가능)
+ * =============================== */
 const INITIAL_POSTS: Post[] = [
   {
     id: '1',
@@ -58,30 +64,22 @@ const App: React.FC = () => {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
+  /** ===============================
+   * DEMO MODE: 항상 초기 데이터로 시작
+   * (localStorage 사용 ❌)
+   * =============================== */
   useEffect(() => {
-    const saved = localStorage.getItem('journal_posts');
-    if (saved) {
-      try {
-        setPosts(JSON.parse(saved));
-      } catch (e) {
-        setPosts(INITIAL_POSTS);
-      }
-    } else {
-      setPosts(INITIAL_POSTS);
-    }
+    setPosts(INITIAL_POSTS);
   }, []);
 
-  useEffect(() => {
-    if (posts.length > 0) {
-      localStorage.setItem('journal_posts', JSON.stringify(posts));
-    }
-  }, [posts]);
+  const filteredPosts =
+    activeCategory === 'All'
+      ? posts
+      : posts.filter(p => p.category === activeCategory);
 
-  const filteredPosts = activeCategory === 'All' 
-    ? posts 
-    : posts.filter(p => p.category === activeCategory);
-
-  const sortedPosts = [...filteredPosts].sort((a, b) => b.createdAt - a.createdAt);
+  const sortedPosts = [...filteredPosts].sort(
+    (a, b) => b.createdAt - a.createdAt
+  );
 
   const handleSavePost = (newPost: Post) => {
     setPosts([newPost, ...posts]);
@@ -90,8 +88,18 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header 
-        activeCategory={activeCategory} 
+
+      {/* ===============================
+          DEMO MODE 배너
+      =============================== */}
+      {IS_DEMO && (
+        <div className="fixed top-0 left-0 w-full bg-stone-200 text-stone-700 text-[11px] text-center py-2 z-50 tracking-widest">
+          DEMO MODE · 로그인 없이 90일 전체를 자유롭게 체험할 수 있습니다
+        </div>
+      )}
+
+      <Header
+        activeCategory={activeCategory}
         setActiveCategory={setActiveCategory}
         onOpenCreate={() => setIsCreateModalOpen(true)}
       />
@@ -100,10 +108,10 @@ const App: React.FC = () => {
         {sortedPosts.length > 0 ? (
           <div className="masonry-grid columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-6">
             {sortedPosts.map((post) => (
-              <PostCard 
-                key={post.id} 
-                post={post} 
-                onClick={setSelectedPost} 
+              <PostCard
+                key={post.id}
+                post={post}
+                onClick={setSelectedPost}
               />
             ))}
           </div>
@@ -118,10 +126,9 @@ const App: React.FC = () => {
       <footer className="py-12 border-t border-stone-200">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
           <p className="text-[10px] uppercase tracking-widest text-stone-400">
-            &copy; {new Date().getFullYear()} Æsthetic Journal &mdash; Minimal Visuals
+            &copy; {new Date().getFullYear()} Aura Journal — Demo Experience
           </p>
           <div className="flex gap-8 text-[10px] uppercase tracking-widest text-stone-400">
-            <a href="#" className="hover:text-stone-900 transition-colors">Archive</a>
             <a href="#" className="hover:text-stone-900 transition-colors">About</a>
             <a href="#" className="hover:text-stone-900 transition-colors">Contact</a>
           </div>
@@ -129,14 +136,14 @@ const App: React.FC = () => {
       </footer>
 
       {selectedPost && (
-        <PostDetail 
-          post={selectedPost} 
-          onClose={() => setSelectedPost(null)} 
+        <PostDetail
+          post={selectedPost}
+          onClose={() => setSelectedPost(null)}
         />
       )}
 
       {isCreateModalOpen && (
-        <CreatePostModal 
+        <CreatePostModal
           onClose={() => setIsCreateModalOpen(false)}
           onSave={handleSavePost}
         />
